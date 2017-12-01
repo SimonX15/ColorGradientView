@@ -19,30 +19,37 @@ import org.jetbrains.anko.sp
  */
 class SweepGradientCircleView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 
-    /** 圆弧画笔 */
-    private val circlePaint = Paint()
-    /** 次数画笔 */
-    private val timesPaint = Paint()
-    /** 文字画笔 */
-    private val textPaint = Paint()
-
-    /** 次数画笔宽度 */
-    private var timesPaintWidth = CIRCLE_PAINT_WIDTH
-
-    /** 次数字体大小 */
-    private var timesSize = sp(TIMES_TEXT_SIZE).toFloat()
-
-    /** 文本字体大小 */
-    private var textSize = sp(TEXT_TEXT_SIZE).toFloat()
-
+    /** 默认数量字体颜色 */
+    private val defaultNumColor = ContextCompat.getColor(context, R.color.orange_end)
+    /** 单位字体颜色 */
+    private val defaultUnitColor = Color.GRAY
     /** 默认开始颜色 */
     private val defaultStartColor = ContextCompat.getColor(context, R.color.orange_start)
-
     /** 默认结束颜色 */
     private val defaultEndColor = ContextCompat.getColor(context, R.color.orange_end)
 
+    /** 圆弧画笔 */
+    private val circlePaint = Paint()
+    /** 数量画笔 */
+    private val numPaint = Paint()
+    /** 单位画笔 */
+    private val unitPaint = Paint()
+
+    /** 圆弧画笔宽度 */
+    private var circlePaintWidth = CIRCLE_PAINT_WIDTH
+
+    /** 数量字体大小 */
+    private var numTextSize = sp(NUM_TEXT_SIZE).toFloat()
+    /** 数量字体颜色 */
+    private var numTextColor = defaultNumColor
+
+    /** 单位字体大小 */
+    private var unitTextSize = sp(UNIT_TEXT_SIZE).toFloat()
+    /** 单位字体颜色 */
+    private var unitTextColor = defaultUnitColor
+
     /** 颜色变化 */
-    private val colorsRight = intArrayOf(defaultStartColor, defaultEndColor)
+    private val colorsArray = intArrayOf(defaultStartColor, defaultEndColor)
 
     /**
      * 填充色主要参数：
@@ -51,7 +58,7 @@ class SweepGradientCircleView(context: Context, attrs: AttributeSet?) : View(con
      * 即每个position定义一个color值，注意position是一个相对位置，其值应该在0.0到1.0之间。
      * 18.5/24.0/28.0/35.0
      */
-    private val colorsRightPositions = floatArrayOf(0f, 1f)
+    private val colorsPositions = floatArrayOf(0f, 1f)
 
     /** 默认的动效周期 2s */
     private var duration = ANIM_DURATION
@@ -68,45 +75,59 @@ class SweepGradientCircleView(context: Context, attrs: AttributeSet?) : View(con
     /** 最大角度 */
     private var maxAngle = circlePercent * 360
 
-    /** 当前次数 */
+    /** 当前数量 */
     private var currentNum = 0
 
-    /** 最大的次数 */
+    /** 最大的数量 */
     private var maxNum = 2000
 
     /** 单位 */
     private var unit = "次"
 
     /** 渐变类型 */
-    var gradientType: GradientType? = null
+    private var gradientType = GradientType.LinearType
 
     /** 动画 */
     private var valueAnimator: ValueAnimator? = null
 
     init {
         initParams(attrs)
-        initData()
         initPaint()
-
     }
 
     /** 初始化参数 */
     private fun initParams(attrs: AttributeSet?) {
         attrs?.run {
+            val typedArray = context.obtainStyledAttributes(attrs, R.styleable.SweepGradientCircleView)
+            typedArray.run {
+                //起止的颜色
+                val start = getColor(R.styleable.SweepGradientCircleView_circleColorStart, defaultStartColor)
+                val end = getColor(R.styleable.SweepGradientCircleView_circleColorEnd, defaultEndColor)
+                colorsArray[0] = start
+                colorsArray[1] = end
 
-        }
-    }
+                circlePaintWidth = getDimension(R.styleable.SweepGradientCircleView_circleWidth, CIRCLE_PAINT_WIDTH)
 
-    /** 初始化数据 */
-    private fun initData() {
-        gradientType = GradientType.LinearType
-        when (gradientType) {
-            GradientType.LinearType -> {
+                numTextSize = getDimension(R.styleable.SweepGradientCircleView_numTextSize, sp(NUM_TEXT_SIZE).toFloat())
+                numTextColor = getColor(R.styleable.SweepGradientCircleView_numTextColor, defaultNumColor)
+
+                unitTextSize = getDimension(R.styleable.SweepGradientCircleView_unitTextSize, sp(UNIT_TEXT_SIZE).toFloat())
+                unitTextColor = getColor(R.styleable.SweepGradientCircleView_unitTextColor, defaultUnitColor)
+
+                duration = getInt(R.styleable.SweepGradientCircleView_animDuration, ANIM_DURATION)
+                startAngle = getFloat(R.styleable.SweepGradientCircleView_startAngle, DEFAULT_START_ANGLE)
+
+                val type = getInt(R.styleable.SweepGradientCircleView_gradientType, 0)
+                gradientType = when (type) {
+                    1 -> {
+                        GradientType.SweepType
+                    }
+                    else -> {
+                        GradientType.LinearType
+                    }
+                }
             }
-            GradientType.SweepType -> {
-            }
-            else -> {
-            }
+            typedArray.recycle()
         }
     }
 
@@ -114,21 +135,22 @@ class SweepGradientCircleView(context: Context, attrs: AttributeSet?) : View(con
     private fun initPaint() {
         circlePaint.color = Color.BLUE
         circlePaint.style = Paint.Style.STROKE
-        circlePaint.strokeWidth = timesPaintWidth
+        circlePaint.strokeWidth = circlePaintWidth
         circlePaint.strokeCap = Paint.Cap.ROUND
         circlePaint.isAntiAlias = true
 
-        timesPaint.color = ContextCompat.getColor(context, R.color.orange_end)
-        timesPaint.textSize = timesSize
-        timesPaint.style = Paint.Style.STROKE
-        timesPaint.textAlign = Paint.Align.CENTER
-        timesPaint.isAntiAlias = true
+        val numColor = ContextCompat.getColor(context, R.color.orange_end)
+        numPaint.color = numColor
+        numPaint.textSize = numTextSize
+        numPaint.style = Paint.Style.STROKE
+        numPaint.textAlign = Paint.Align.CENTER
+        numPaint.isAntiAlias = true
 
-        textPaint.color = Color.GRAY
-        textPaint.textSize = textSize
-        textPaint.style = Paint.Style.STROKE
-        textPaint.textAlign = Paint.Align.CENTER
-        textPaint.isAntiAlias = true
+        unitPaint.color = Color.GRAY
+        unitPaint.textSize = unitTextSize
+        unitPaint.style = Paint.Style.STROKE
+        unitPaint.textAlign = Paint.Align.CENTER
+        unitPaint.isAntiAlias = true
     }
 
 
@@ -148,16 +170,27 @@ class SweepGradientCircleView(context: Context, attrs: AttributeSet?) : View(con
     private fun drawCircle(canvas: Canvas) {
         //画一个区域
         //        val rectF = RectF(0f, 0f, width.toFloat(), height.toFloat())
-        //        canvas.drawRect(rectF, textPaint)
-        val linearGradient = LinearGradient(width / 2f, 0f, width / 2f, height.toFloat(), colorsRight, null, Shader.TileMode.REPEAT)
+        //        canvas.drawRect(rectF, unitPaint)
 
-        val circleRectF = RectF(timesPaintWidth / 2, timesPaintWidth / 2, width - timesPaintWidth / 2, height - timesPaintWidth / 2)
-        val sweepGradient = SweepGradient(width / 2f, height / 2f, colorsRight, colorsRightPositions)
-        /*val matrix = Matrix()
-        matrix.setRotate(1f, width / 2f, height / 2f) //加上旋转还是很有必要的，每次最右边总是有一部分多余了,不太美观,也可以不加
-        sweepGradient.setLocalMatrix(matrix)*/
-        //        circlePaint.shader = sweepGradient
-        circlePaint.shader = linearGradient
+        val circleRectF = RectF(circlePaintWidth / 2, circlePaintWidth / 2, width - circlePaintWidth / 2, height - circlePaintWidth / 2)
+
+        when (gradientType) {
+            GradientType.LinearType -> {
+                val start = width / 2f
+                val top = 0f
+                val end = width / 2f
+                val bottom = height.toFloat()
+                val linearGradient = LinearGradient(start, top, end, bottom, colorsArray, null, Shader.TileMode.REPEAT)
+                circlePaint.shader = linearGradient
+            }
+            GradientType.SweepType -> {
+                val sweepGradient = SweepGradient(width / 2f, height / 2f, colorsArray, colorsPositions)
+                /*val matrix = Matrix()
+                matrix.setRotate(1f, width / 2f, height / 2f) //加上旋转还是很有必要的，每次最右边总是有一部分多余了,不太美观,也可以不加
+                sweepGradient.setLocalMatrix(matrix)*/
+                circlePaint.shader = sweepGradient
+            }
+        }
 
         //当前进度，从90°（正下），画360°的圆弧
         canvas.drawArc(circleRectF, startAngle, currentAnglePercent * maxAngle, false, circlePaint)
@@ -165,7 +198,7 @@ class SweepGradientCircleView(context: Context, attrs: AttributeSet?) : View(con
 
     /** 写字 */
     private fun drawText(canvas: Canvas) {
-        val fontMetrics = timesPaint.fontMetrics
+        val fontMetrics = numPaint.fontMetrics
         //为基线到字体上边框的距离,即上图中的top
         val top = fontMetrics.top
         //为基线到字体下边框的距离,即上图中的bottom
@@ -179,11 +212,11 @@ class SweepGradientCircleView(context: Context, attrs: AttributeSet?) : View(con
         val times = currentNum.toString()
 
 
-        val leftLength = timesPaint.measureText(times)
-        val rightLength = textPaint.measureText(unit)
+        val leftLength = numPaint.measureText(times)
+        val rightLength = unitPaint.measureText(unit)
 
-        canvas.drawText(times, centerX - rightLength / 2, centerY, timesPaint)
-        canvas.drawText(unit, centerX + leftLength / 2, centerY, textPaint)
+        canvas.drawText(times, centerX - rightLength / 2, centerY, numPaint)
+        canvas.drawText(unit, centerX + leftLength / 2, centerY, unitPaint)
     }
 
 
@@ -212,7 +245,7 @@ class SweepGradientCircleView(context: Context, attrs: AttributeSet?) : View(con
             }
         }
         valueAnimator = ValueAnimator.ofFloat(currentAnglePercent, maxAngle)
-        valueAnimator?.duration = duration
+        valueAnimator?.duration = duration.toLong()
         valueAnimator?.interpolator = DecelerateInterpolator()
         valueAnimator?.addUpdateListener {
             val value = it.animatedValue as Float
@@ -224,14 +257,14 @@ class SweepGradientCircleView(context: Context, attrs: AttributeSet?) : View(con
     }
 
     companion object {
-        /** 次数字体大小 */
-        private val TIMES_TEXT_SIZE = 40
+        /** 数量字体大小 */
+        private val NUM_TEXT_SIZE = 40f
 
-        /** 文本字体大小 */
-        private val TEXT_TEXT_SIZE = 16
+        /** 单位字体大小 */
+        private val UNIT_TEXT_SIZE = 16f
 
         /** 默认的动效周期 2s */
-        private val ANIM_DURATION: Long = 2000
+        private val ANIM_DURATION = 2000
 
         /** 圆的画笔宽度 */
         private val CIRCLE_PAINT_WIDTH = 40f
@@ -242,6 +275,6 @@ class SweepGradientCircleView(context: Context, attrs: AttributeSet?) : View(con
 }
 
 /** 渐变类型 */
-enum class GradientType() {
+enum class GradientType {
     LinearType, SweepType
 }

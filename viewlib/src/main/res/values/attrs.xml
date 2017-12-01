@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="SweepGradientCircleView">
+        <attr name="circleColorStart" format="color"/>
+        <attr name="circleColorEnd" format="color"/>
+        <attr name="circleWidth" format="dimension"/>
+        <attr name="numTextSize" format="dimension"/>
+        <attr name="numTextColor" format="color"/>
+        <attr name="unitTextSize" format="dimension"/>
+        <attr name="unitTextColor" format="color"/>
+        <attr name="animDuration" format="integer"/>
+        <attr name="startAngle" format="float"/>
+        <attr name="gradientType" format="enum">
+            <enum name="linear_gradient" value="0"/>
+            <enum name="sweep_gradient" value="1"/>
+        </attr>
+    </declare-styleable>
+</resources>
