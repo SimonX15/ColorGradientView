@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="orange_start">#ffc800</color>
+    <color name="orange_text">#ff9400</color>
     <color name="orange_end">#f76b1c</color>
 </resources>

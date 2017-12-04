@@ -8,6 +8,7 @@ import android.support.v4.content.ContextCompat
 import android.util.AttributeSet
 import android.view.View
 import android.view.animation.DecelerateInterpolator
+import org.jetbrains.anko.dip
 import org.jetbrains.anko.sp
 
 
@@ -20,7 +21,7 @@ import org.jetbrains.anko.sp
 class SweepGradientCircleView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 
     /** 默认数量字体颜色 */
-    private val defaultNumColor = ContextCompat.getColor(context, R.color.orange_end)
+    private val defaultNumColor = ContextCompat.getColor(context, R.color.orange_text)
     /** 单位字体颜色 */
     private val defaultUnitColor = Color.GRAY
     /** 默认开始颜色 */
@@ -79,7 +80,7 @@ class SweepGradientCircleView(context: Context, attrs: AttributeSet?) : View(con
     private var currentNum = 0
 
     /** 最大的数量 */
-    private var maxNum = 2000
+    private var maxNum = 0
 
     /** 单位 */
     private var unit = "次"
@@ -106,7 +107,7 @@ class SweepGradientCircleView(context: Context, attrs: AttributeSet?) : View(con
                 colorsArray[0] = start
                 colorsArray[1] = end
 
-                circlePaintWidth = getDimension(R.styleable.SweepGradientCircleView_circleWidth, CIRCLE_PAINT_WIDTH)
+                circlePaintWidth = getDimension(R.styleable.SweepGradientCircleView_circleWidth, dip(CIRCLE_PAINT_WIDTH).toFloat())
 
                 numTextSize = getDimension(R.styleable.SweepGradientCircleView_numTextSize, sp(NUM_TEXT_SIZE).toFloat())
                 numTextColor = getColor(R.styleable.SweepGradientCircleView_numTextColor, defaultNumColor)
@@ -221,14 +222,14 @@ class SweepGradientCircleView(context: Context, attrs: AttributeSet?) : View(con
 
 
     /** 设置进度 */
-    fun setProgress(maxTimes: Int, percent: Float = 1f) {
+    fun setProgress(maxNum: Int, percent: Float = 1f) {
         when {
             percent < 0 -> this.circlePercent = 0f
             percent > 1 -> this.circlePercent = 1f
             else -> this.circlePercent = percent
         }
         this.maxAngle = circlePercent * 360
-        this.maxNum = maxTimes
+        this.maxNum = maxNum
         currentAnglePercent = 0f
         startAnimator()
     }
@@ -267,7 +268,7 @@ class SweepGradientCircleView(context: Context, attrs: AttributeSet?) : View(con
         private val ANIM_DURATION = 2000
 
         /** 圆的画笔宽度 */
-        private val CIRCLE_PAINT_WIDTH = 40f
+        private val CIRCLE_PAINT_WIDTH = 8f
 
         /** 默认起始角度，-90表示12点钟方向 */
         private val DEFAULT_START_ANGLE = -90f
