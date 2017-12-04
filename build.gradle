@@ -7,8 +7,9 @@ buildscript {
     ext.ankoVersion = "0.10.1"
 
     repositories {
-        google()
+//        google()
         jcenter()
+        mavenCentral()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:2.3.3'
@@ -23,8 +24,9 @@ buildscript {
 
 allprojects {
     repositories {
-        google()
+//        google()
         jcenter()
+        mavenCentral()
         maven { url 'https://jitpack.io' }
     }
 }

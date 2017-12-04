@@ -14,7 +14,6 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-
     }
 
     buildTypes {
@@ -41,7 +40,4 @@ dependencies {
     compile "org.jetbrains.anko:anko-design:$ankoVersion"
     compile "org.jetbrains.anko:anko-sdk15-listeners:$ankoVersion"
     compile "org.jetbrains.anko:anko-sdk15:$ankoVersion"
-}
-repositories {
-    mavenCentral()
 }
