@@ -1,4 +1,4 @@
 # ColorGradientView
 
-## 效果
-![show.gif]
+## 效果图
+![](imgs/show.gif)
