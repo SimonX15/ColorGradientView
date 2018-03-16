@@ -1,2 +1,4 @@
 # ColorGradientView
-init
+
+## 效果
+![show.gif]
